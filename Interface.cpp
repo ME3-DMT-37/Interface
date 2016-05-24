@@ -1,104 +1,11 @@
+#include "Interface.h"
 #include <genieArduino.h>
-#include <Bounce2.h>
 
-#define BUTTON_UP A4
-#define BUTTON_DOWN A7
-#define BUTTON_LEFT A3
-#define BUTTON_RIGHT A6
-#define BUTTON_ENTER A5
-
-#define DISPLAY_RESET 2
-
-Bounce up = Bounce();
-Bounce down = Bounce();
-Bounce left = Bounce();
-Bounce right = Bounce();
-Bounce enter = Bounce();
-
-Genie genie;
-
-void setup() {
-
-  //USB Serial setup
-  Serial.begin(9600);
-
-  //Display Serial Setup
-  Serial1.begin(9600);
-
-  genie.Begin(Serial1);
-
-  //Setting up Teensy pins
-  pinMode(BUTTON_UP, INPUT);
-  pinMode(BUTTON_DOWN, INPUT);
-  pinMode(BUTTON_LEFT, INPUT);
-  pinMode(BUTTON_RIGHT, INPUT);
-  pinMode(BUTTON_ENTER, INPUT);
-  pinMode(DISPLAY_RESET, OUTPUT);
-
-  //allowing each button to be debounced
-  //setting debounce interval to 5 ms (default is 10 ms)
-  up.attach(BUTTON_UP);
-  up.interval(5);
-  down.attach(BUTTON_DOWN);
-  down.interval(5);
-  right.attach(BUTTON_RIGHT);
-  right.interval(5);
-  left.attach(BUTTON_LEFT);
-  left.interval(5);
-  enter.attach(BUTTON_ENTER);
-  enter.interval(5);
-
-  // reset display by toggling reset line
-  digitalWrite(DISPLAY_RESET, LOW);
-  delay(1000);
-  digitalWrite(DISPLAY_RESET, HIGH);
-
+Interface::Interface() {
+  
 }
 
-
-int screen = 0; //default screen is "Main menu"
-int select = 1; //default selection is "confirm arrangement"
-int string = 0;
-int stringindex = 6;
-int oldstring = 1;
-int oldstringindex = 0;
-int level = 2;
-int tunecounter = 0;
-int tunecounterindex = 0;
-int allstrings = 1;
-int tunedstrings[6] = {0, 0, 0, 0, 0, 0};
-int sum = 0;
-int calibrate = 0;
-
-bool string_tuned[] = {true, true, true, true, true, true}; //flags for Controller code to start tuning
-
-/* Screen Numbers
-  0 = main menu,
-  1 = confirm arrangement,
-  2 = Settings
-  3 = power off
-  4 = Make new arrangement
-  5 = Attach Device
-  6 = Choose String(s)
-  7 = Pluck string
-  8 = Wait screen
-  9 = Completely Tuned
-  10 = Choose Headstock
-*/
-
-#define MAIN_MENU 0
-#define CONFIRM_ARRANGEMENT 1
-#define SETTINGS 2
-#define POWER_OFF 3
-#define MAKE_ARRANGEMENT 4
-#define ATTACH_DEVICE 5
-#define CHOOSE_STRING 6
-#define PLUCK_STRING 7
-#define WAIT_SCREEN 8
-#define COMPLETELY_TUNED 9
-#define CHOOSE_HEADSTOCK 10
-
-void menuhighlight() { //Screen 0
+void Interface::menuhighlight() { //Screen 0
   if (up.update()) { //highlight "confirm arrangement"
     if (up.read()) {
       genie.WriteObject(GENIE_OBJ_USERIMAGES, 0, 0);
@@ -125,7 +32,7 @@ void menuhighlight() { //Screen 0
   }
 }
 
-void menuchoice() { //Screen 0
+void Interface::menuchoice() { //Screen 0
   if (enter.update()) {
     if (enter.read()) {
       screen = select; //go to selection defined by if statements
@@ -150,7 +57,7 @@ void menuchoice() { //Screen 0
   }
 }
 
-void confirmhighlight() { //Screen 1
+void Interface::confirmhighlight() { //Screen 1
   //Confirming the arrangement chosen. By default, the tick button is highlighted as select = 5 (see menuchoice(), if (Screen==1))
   if (right.update()) {
     if (right.read()) {
@@ -166,7 +73,7 @@ void confirmhighlight() { //Screen 1
   }
 }
 
-void confirmchoice() { //Screen 1
+void Interface::confirmchoice() { //Screen 1
   if (enter.update()) {
     if (enter.read()) {
       screen = select;
@@ -188,7 +95,7 @@ void confirmchoice() { //Screen 1
   }
 }
 
-void settingshighlight() { //Screen 2
+void Interface::settingshighlight() { //Screen 2
   if (down.update()) { //If down button is pressed, goes down a level. Level 1 = Strings, Level 2 = Guitar, Level 3 = Return
     if (down.read()) {
       if (level < 2) {
@@ -210,7 +117,7 @@ void settingshighlight() { //Screen 2
   }
 }
 
-void settingschoice() {//Screen 2
+void Interface::settingschoice() {//Screen 2
   if (enter.update()) {
     if (enter.read()) {
 
@@ -246,7 +153,7 @@ void settingschoice() {//Screen 2
   }
 }
 
-void poweroff() { //Screen 3
+void Interface::poweroff() { //Screen 3
   if (enter.update()) {
     if (enter.read()) {
       screen = select; //go to selection defined by if statements/ previous screen.
@@ -257,7 +164,7 @@ void poweroff() { //Screen 3
   }
 }
 
-void newarrangehighlight() { //Screen 4
+void Interface::newarrangehighlight() { //Screen 4
   if (enter.update()) {
     if (enter.read()) {
       screen = select; //go to selection defined by if statements/ previous screen.
@@ -268,7 +175,7 @@ void newarrangehighlight() { //Screen 4
   }
 }
 
-void attachhighlight() { //Screen 5
+void Interface::attachhighlight() { //Screen 5
   //Confirming the device has been attached. Tick button is selected by default as select = 6, (see confirmchoice(), if screen==5)
   if (right.update()) {
     if (right.read()) {
@@ -284,7 +191,7 @@ void attachhighlight() { //Screen 5
   }
 }
 
-void attachchoice() { //Screen 5
+void Interface::attachchoice() { //Screen 5
   if (enter.update()) {
     if (enter.read()) {
       screen = select; //go to selection defined by if statements
@@ -301,7 +208,7 @@ void attachchoice() { //Screen 5
   }
 }
 
-void selectstrhighlight() { //Screen 6
+void Interface::selectstrhighlight() { //Screen 6
   if (down.update()) { //If down button is pressed, goes down a level. Level 1 = Strings, Level 2 = Guitar, Level 3 = Return
     if (down.read()) {
       if (level < 3) {
@@ -370,7 +277,7 @@ void selectstrhighlight() { //Screen 6
   }
 }
 
-void selectstrchoice() { //Screen 6. Potentially have this return a string number, not a void.
+void Interface::selectstrchoice() { //Screen 6. Potentially have this return a string number, not a void.
   if (enter.update()) {
     if (enter.read()) {
       if (level == 1) {
@@ -397,7 +304,7 @@ void selectstrchoice() { //Screen 6. Potentially have this return a string numbe
   }
 }
 
-void headstockhighlight() { //Screen 10
+void Interface::headstockhighlight() { //Screen 10
   if (right.update()) {
     if (right.read()) {
       genie.WriteObject(GENIE_OBJ_USERIMAGES, 15, 1);
@@ -412,7 +319,7 @@ void headstockhighlight() { //Screen 10
   }
 }
 
-void headstockchoice() {//Screen 10
+void Interface::headstockchoice() {//Screen 10
   if (enter.update()) {
     if (enter.read()) {
       screen = select; //go to selection defined by if statements in headstock highlight/ previous screen
@@ -423,7 +330,7 @@ void headstockchoice() {//Screen 10
   }
 }
 
-void selectnewstring() {
+void Interface::selectnewstring() {
   genie.WriteObject(GENIE_OBJ_FORM, CHOOSE_STRING, 0); //go back to string selection screen
   if (allstrings == 1) {
     tunedstrings[tunecounter] = 1; //sets value in array specified by tunecounter
@@ -452,7 +359,7 @@ void selectnewstring() {
 
 }
 
-void allstringsfunc() {
+void Interface::allstringsfunc() {
   tunecounterindex = tunecounter + 6;
   genie.WriteObject(GENIE_OBJ_USERIMAGES, tunecounterindex, 3); //requests user to pluck next string along
   genie.WriteObject(GENIE_OBJ_USERIMAGES, 12, 0); //unhighlights the guitar
@@ -462,7 +369,7 @@ void allstringsfunc() {
   allstrings = 1;
 }
 
-void fullytuneselect() {
+void Interface::fullytuneselect() {
   if (right.update()) {
     if (right.read()) {
       genie.WriteObject(GENIE_OBJ_USERIMAGES, 14, 1);//Highlights Return Button
@@ -477,7 +384,7 @@ void fullytuneselect() {
   }
 }
 
-void fullytuneconfirm() {
+void Interface::fullytuneconfirm() {
   if (enter.update()) {
     if (enter.read()) {
       genie.WriteObject(GENIE_OBJ_FORM, select, 0); //returns to choose string screen (if select = 6), returns to main menu (if select = 0)
@@ -492,94 +399,3 @@ void fullytuneconfirm() {
     }
   }
 }
-
-
-void loop() {
-
-  genie.DoEvents();
-  // put your main code here, to run repeatedly:
-
-  if (screen == MAIN_MENU) { //main menu
-    menuhighlight();  // returns values of "select" between 1 to 4.
-    menuchoice();     // uses returned values of "select" to determine value of "screen", and default "select" value for this screen.
-  }
-
-  if (screen == CONFIRM_ARRANGEMENT) { //confirm arrangement
-    confirmhighlight(); // returns values of "select" of 0 & 5.
-    confirmchoice();    // uses returned values of "select" to determine value of "screen" and default "select" value for this screen.
-  }
-
-  if (screen == SETTINGS) {
-    settingshighlight();
-    settingschoice();
-  }
-
-  if (screen == POWER_OFF) { //power off
-    poweroff(); //displays splash screen, use enter button to return to main menu.
-  }
-
-  if (screen == MAKE_ARRANGEMENT) {  //make new arrangement (UNFINISHED!!!!!!!!!!!!!!!!!!!!!!!!!!!!)
-    newarrangehighlight();
-  }
-
-  if (screen == ATTACH_DEVICE) { //attach device
-    attachhighlight();
-    attachchoice();
-  }
-
-  if (screen == CHOOSE_STRING) { //choose string
-    selectstrhighlight();
-    selectstrchoice(); //Can return string number.
-    //Set flag here for tuning.
-
-  }
-
-  if (screen == PLUCK_STRING) { //displays request to pluck previously selected string/ next string
-    if (up.update()) { //simulates the plucking of string. Have tuning code send a flag to denote "Tuning"
-      if (up.read()) {
-        genie.WriteObject(GENIE_OBJ_FORM, 7, 0);
-        screen = WAIT_SCREEN;
-      }
-    }
-    if (enter.update()) { //cancel process
-      if (enter.read()) {
-        genie.WriteObject(GENIE_OBJ_FORM, select, 0); //returns to choose string screen
-        screen = select;
-      }
-    }
-  }
-
-  if (screen == WAIT_SCREEN) { //wait screen
-    if (up.update()) { //if tuning code throws up flag denoting successful tuning
-      if (up.read()) {
-        selectnewstring();
-      }
-    }
-
-    if (down.update()) {
-      if (down.read()) {
-        genie.WriteObject(GENIE_OBJ_FORM, 6, 0); //returns user to pluck string screen,
-        screen = PLUCK_STRING;
-      }
-    }
-
-    if (enter.update()) { //user manually cancels process
-      if (enter.read()) {
-        screen = select;
-        genie.WriteObject(GENIE_OBJ_FORM, screen, 0); //returns to choose string screen
-      }
-    }
-  }
-
-  if (screen == COMPLETELY_TUNED) { //Guitar is fully tuned
-    //Confirming the arrangement chosen. By default, the tick button is highlighted as select = 5 (see menuchoice(), if (Screen==1))
-    fullytuneselect();
-    fullytuneconfirm();
-  }
-
-  if (screen == CHOOSE_HEADSTOCK) {
-    headstockhighlight(); //highlights different headstock types
-    headstockchoice();    //returns back to main menu
-  }
-}
-
