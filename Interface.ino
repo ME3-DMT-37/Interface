@@ -412,6 +412,34 @@ void headstockchoice() {//Screen 10
   }
 }
 
+void selectnewstring(){
+  genie.WriteObject(GENIE_OBJ_FORM, CHOOSE_STRING, 0); //go back to string selection screen
+        if (allstrings == 1) {
+          tunedstrings[tunecounter] = 1; //sets value in array specified by tunecounter
+          tunecounter++; //increments counter each time this option is selected
+          genie.WriteObject(GENIE_OBJ_USERIMAGES, tunecounterindex, 2); //marks previously selected string as tuned
+          allstringsfunc();//display request to pluck next string along
+        }
+        else {
+          tunedstrings[string] = 1;
+          screen = CHOOSE_STRING;
+          //display "choose string" screen, with green highlighted string to denote a tuned string
+        }
+        sum = 0;
+        for (int i = 0 ; i < 6 ; i++) {
+          sum = sum + tunedstrings[i];
+          Serial.println(tunedstrings[i]);
+        }
+        if (sum == 6) {
+          genie.WriteObject(GENIE_OBJ_FORM, 8, 0); //completely tuned screen
+          genie.WriteObject(GENIE_OBJ_USERIMAGES, 14, 0);
+          screen = 9;
+          select = 0;
+        }
+
+        Serial.println(sum);
+}
+
 void allstringsfunc() {
   tunecounterindex = tunecounter + 6;
   genie.WriteObject(GENIE_OBJ_USERIMAGES, tunecounterindex, 3); //requests user to pluck next string along
@@ -421,6 +449,38 @@ void allstringsfunc() {
   screen = PLUCK_STRING;
   allstrings = 1;
 }
+
+void fullytuneselect(){
+      if (right.update()) {
+      if (right.read()) {
+        genie.WriteObject(GENIE_OBJ_USERIMAGES, 14, 1);//Highlights Return Button
+        select = CHOOSE_STRING; //selection selectstrings (screen 6)
+      }
+    }
+    if (left.update()) {
+      if (left.read()) {
+        genie.WriteObject(GENIE_OBJ_USERIMAGES, 14, 0); //Highlights Tick Button.
+        select = MAIN_MENU;  //selection main menu (Screen 0)
+      }
+    }
+}
+
+void fullytuneconfirm(){
+      if (enter.update()) { //
+      if (enter.read()) {
+        genie.WriteObject(GENIE_OBJ_FORM, select, 0); //returns to choose string screen (if select = 6), returns to main menu (if select = 0)
+        screen = select;
+        sum = 0;
+        select = CONFIRM_ARRANGEMENT;
+        level = 2;
+        string = 0;
+        for (int i = 0; i < 6; i++) { //Sets all strings to "Untuned"
+          tunedstrings[i] = 0;
+        }
+      }
+    }
+}
+
 
 void loop() {
 
@@ -478,81 +538,37 @@ void loop() {
   }
 
   if (screen == WAIT_SCREEN) { //wait screen
+    
     if (up.update()) { //if tuning code throws up flag denoting successful tuning
       if (up.read()) {
-
-        genie.WriteObject(GENIE_OBJ_FORM, CHOOSE_STRING, 0); //go back to string selection screen
-        if (allstrings == 1) {
-          tunedstrings[tunecounter] = 1; //sets value in array specified by tunecounter
-          tunecounter++; //increments counter each time this option is selected
-          genie.WriteObject(GENIE_OBJ_USERIMAGES, tunecounterindex, 2); //marks previously selected string as tuned
-          allstringsfunc();//display request to pluck next string along
-        }
-        else {
-          tunedstrings[string] = 1;
-          screen = CHOOSE_STRING;
-          //display "choose string" screen, with green highlighted string to denote a tuned string
-        }
-        sum = 0;
-        for (int i = 0 ; i < 6 ; i++) {
-          sum = sum + tunedstrings[i];
-          Serial.println(tunedstrings[i]);
-        }
-        if (sum == 6) {
-          genie.WriteObject(GENIE_OBJ_FORM, 8, 0); //completely tuned screen
-          genie.WriteObject(GENIE_OBJ_USERIMAGES, 14, 0);
-          screen = 9;
-          select = 0;
-        }
-
-        Serial.println(sum);
+        selectnewstring();
       }
     }
 
     if (down.update()) {
       if (down.read()) {
-        genie.WriteObject(GENIE_OBJ_FORM, 6, 0); //returns user to
+        genie.WriteObject(GENIE_OBJ_FORM, 6, 0); //returns user to pluck string screen, 
         screen = PLUCK_STRING;
       }
-
     }
 
     if (enter.update()) { //user manually cancels process
       if (enter.read()) {
         screen = select;
         genie.WriteObject(GENIE_OBJ_FORM, screen, 0); //returns to choose string screen
-
       }
     }
+    
   }
 
   if (screen == COMPLETELY_TUNED) { //Guitar is fully tuned
     //Confirming the arrangement chosen. By default, the tick button is highlighted as select = 5 (see menuchoice(), if (Screen==1))
-    if (right.update()) {
-      if (right.read()) {
-        genie.WriteObject(GENIE_OBJ_USERIMAGES, 14, 1);//Highlights Return Button
-        select = CHOOSE_STRING; //selection selectstrings (screen 6)
-      }
-    }
-    if (left.update()) {
-      if (left.read()) {
-        genie.WriteObject(GENIE_OBJ_USERIMAGES, 14, 0); //Highlights Tick Button.
-        select = MAIN_MENU;  //selection main menu (Screen 0)
-      }
-    }
-    if (enter.update()) { //
-      if (enter.read()) {
-        genie.WriteObject(GENIE_OBJ_FORM, select, 0); //returns to choose string screen (if select = 6), returns to main menu (if select = 0)
-        screen = select;
-        sum = 0;
-        select = CONFIRM_ARRANGEMENT;
-        level = 2;
-        string = 0;
-        for (int i = 0; i < 6; i++) { //Sets all strings to "Untuned"
-          tunedstrings[i] = 0;
-        }
-      }
-    }
+    fullytuneselect();
+    
+
+    
+    fullytuneconfirm(){
+
   }
 
   if (screen == CHOOSE_HEADSTOCK) {
