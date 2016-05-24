@@ -62,6 +62,8 @@ int tunedstrings[6] = {0, 0, 0, 0, 0, 0};
 int sum = 0;
 int calibrate = 0;
 
+bool string_tuned[] = {true, true, true, true, true, true}; //flags for Controller code to start tuning
+
 /* Screen Numbers
   0 = main menu,
   1 = confirm arrangement,
@@ -369,11 +371,12 @@ void selectstrchoice() { //Screen 6. Potentially have this return a string numbe
         select = CHOOSE_STRING;
         screen = PLUCK_STRING;
         allstrings = 0;
+        string_tuned[string]=false;
       }
       if (level == 2) { //if selecting all strings
         tunecounter = 0; //resets the tuner counter if this option is selected
         for (int i = 0; i < 6; i++) {
-          tunedstrings[i] = 0;
+          tunedstring[i] = 0;
         }
         allstringsfunc();
       }
@@ -538,7 +541,7 @@ void loop() {
   }
 
   if (screen == WAIT_SCREEN) { //wait screen
-    
+  
     if (up.update()) { //if tuning code throws up flag denoting successful tuning
       if (up.read()) {
         selectnewstring();
@@ -564,9 +567,6 @@ void loop() {
   if (screen == COMPLETELY_TUNED) { //Guitar is fully tuned
     //Confirming the arrangement chosen. By default, the tick button is highlighted as select = 5 (see menuchoice(), if (Screen==1))
     fullytuneselect();
-    
-
-    
     fullytuneconfirm(){
 
   }
