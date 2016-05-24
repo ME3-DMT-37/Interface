@@ -376,7 +376,7 @@ void selectstrchoice() { //Screen 6. Potentially have this return a string numbe
       if (level == 2) { //if selecting all strings
         tunecounter = 0; //resets the tuner counter if this option is selected
         for (int i = 0; i < 6; i++) {
-          tunedstring[i] = 0;
+          tunedstrings[i] = 0;
         }
         allstringsfunc();
       }
