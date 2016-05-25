@@ -22,36 +22,8 @@ void setup() {
   //USB Serial setup
   Serial.begin(9600);
 
-  //Display Serial Setup
-  Serial1.begin(9600);
-
-  genie.Begin(Serial1);
-
-  //Setting up Teensy pins
-  pinMode(BUTTON_UP, INPUT);
-  pinMode(BUTTON_DOWN, INPUT);
-  pinMode(BUTTON_LEFT, INPUT);
-  pinMode(BUTTON_RIGHT, INPUT);
-  pinMode(BUTTON_ENTER, INPUT);
-  pinMode(DISPLAY_RESET, OUTPUT);
-
-  //allowing each button to be debounced
-  //setting debounce interval to 5 ms (default is 10 ms)
-  up.attach(BUTTON_UP);
-  up.interval(5);
-  down.attach(BUTTON_DOWN);
-  down.interval(5);
-  right.attach(BUTTON_RIGHT);
-  right.interval(5);
-  left.attach(BUTTON_LEFT);
-  left.interval(5);
-  enter.attach(BUTTON_ENTER);
-  enter.interval(5);
-
-  // reset display by toggling reset line
-  digitalWrite(DISPLAY_RESET, LOW);
-  delay(1000);
-  digitalWrite(DISPLAY_RESET, HIGH);
+  buttonSetup();
+  displaySetup();
 
 }
 
@@ -170,8 +142,8 @@ void confirmchoice() { //Screen 1
   if (enter.update()) {
     if (enter.read()) {
       screen = select;
-      genie.WriteObject(GENIE_OBJ_FORM, screen, 0); //go to form 0(main menu) or form 5 (attach device)
-      genie.WriteObject(GENIE_OBJ_USERIMAGES, screen, 0); //Display default image on each form (
+      genie.WriteObject(GENIE_OBJ_FORM, screen, 0); //go to form 0 (main menu) or form 5 (attach device)
+      genie.WriteObject(GENIE_OBJ_USERIMAGES, screen, 0); //Display default image on each form
 
       for (int i = 0; i < 6; i++) { //Sets all strings to "Untuned"
         tunedstrings[i] = 0;
@@ -497,7 +469,6 @@ void fullytuneconfirm() {
 void loop() {
 
   genie.DoEvents();
-  // put your main code here, to run repeatedly:
 
   if (screen == MAIN_MENU) { //main menu
     menuhighlight();  // returns values of "select" between 1 to 4.
@@ -582,3 +553,42 @@ void loop() {
     headstockchoice();    //returns back to main menu
   }
 }
+
+void buttonSetup() {
+
+  //Setting up Teensy pins
+  pinMode(BUTTON_UP, INPUT);
+  pinMode(BUTTON_DOWN, INPUT);
+  pinMode(BUTTON_LEFT, INPUT);
+  pinMode(BUTTON_RIGHT, INPUT);
+  pinMode(BUTTON_ENTER, INPUT);
+  pinMode(DISPLAY_RESET, OUTPUT);
+
+  up.attach(BUTTON_UP);
+  down.attach(BUTTON_DOWN);
+  right.attach(BUTTON_RIGHT);
+  left.attach(BUTTON_LEFT);
+  enter.attach(BUTTON_ENTER);
+
+  up.interval(5);
+  down.interval(5);
+  right.interval(5);
+  left.interval(5);
+  enter.interval(5);
+
+}
+
+void displaySetup() {
+
+  //Display Serial Setup
+  Serial1.begin(9600);
+
+  genie.Begin(Serial1);
+
+  // reset display by toggling reset line
+  digitalWrite(DISPLAY_RESET, LOW);
+  delay(1000);
+  digitalWrite(DISPLAY_RESET, HIGH);
+
+}
+
